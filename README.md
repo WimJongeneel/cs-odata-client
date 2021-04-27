@@ -28,6 +28,9 @@ var result = await oDataContext.Products
     * [Filter](#filter)
     * [Expand](#expand)
     * [Orderby](#orderby)
+    * [OrderbyThen](#orderbythen)
+    * [OrderbyDescending](#orderbydescending)
+    * [OrderbyDescendingThen](#orderbydescendingthen)
     * [Top](#top)
     * [Skip](#skip)
     * [ExecuteAsync](#executeasync)
@@ -97,6 +100,33 @@ With `Orderby` you can order the result. This method accepts a lambda from the t
 var q = await oDataContext.Products
     .Select(x => new{ x.ProductID, x.ProductName })
     .Orderby(x => x.Supplier.City);
+```
+
+### OrderbyThen
+With `OrderbyThen` you can add an additional order to the result. This method accepts a lambda from the type of the source to the attribute that should be sorted on.
+
+```cs
+var q = await oDataContext.Products
+    .Select(x => new{ x.ProductID, x.ProductName })
+    .OrderbyThen(x => x.Supplier.City);
+```
+
+### OrderbyDescending
+With `OrderbyDescending` you can order the result descending. This method accepts a lambda from the type of the source to the attribute that should be sorted on.
+
+```cs
+var q = await oDataContext.Products
+    .Select(x => new{ x.ProductID, x.ProductName })
+    .OrderbyDescending(x => x.Supplier.City);
+```
+
+### OrderbyDescendingThen
+With `OrderbyDescendingThen` you can add an additional descending order to the result. This method accepts a lambda from the type of the source to the attribute that should be sorted on.
+
+```cs
+var q = await oDataContext.Products
+    .Select(x => new{ x.ProductID, x.ProductName })
+    .OrderbyDescendingThen(x => x.Supplier.City);
 ```
 
 ### Top
