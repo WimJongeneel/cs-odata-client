@@ -5,6 +5,14 @@ using System.Linq.Expressions;
 
 namespace ODataClientTests
 {
+    public class Bar 
+    {
+        public int Id { get; set; }
+        public DateTime CreatedAt  { get; set; }
+        public string Foo { get; set; }
+        public bool Isbaz { get; set; }
+    }
+
     public class FilterExpressionTests
     {
         Expression<Func<Bar, bool>> predicate;
@@ -96,6 +104,14 @@ namespace ODataClientTests
             predicate = x => x.Id / (2 * x.Id) + 5 == 0;
             expr = FilterExpression.Compile(predicate);
             Assert.Equal("((Id div (2 mul Id)) add 5) eq 0", expr);
+
+            predicate = x => (x.Id + 2) / (2 * x.Id) + (5 + 2) == 0;
+            expr = FilterExpression.Compile(predicate);
+            Assert.Equal("(((Id add 2) div (2 mul Id)) add 7) eq 0", expr);
+
+             predicate = x => (x.Id + 2) / (2 * x.Id) + 5 + 2 == 0;
+            expr = FilterExpression.Compile(predicate);
+            Assert.Equal("((((Id add 2) div (2 mul Id)) add 5) add 2) eq 0", expr);
         }
     }
 }
