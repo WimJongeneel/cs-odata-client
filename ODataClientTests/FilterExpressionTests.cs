@@ -5,13 +5,6 @@ using System.Linq.Expressions;
 
 namespace ODataClientTests
 {
-    public class Bar 
-    {
-        public int Id { get; set; }
-        public DateTime CreatedAt  { get; set; }
-        public string Foo { get; set; }
-        public bool Isbaz { get; set; }
-    }
     public class FilterExpressionTests
     {
         Expression<Func<Bar, bool>> predicate;
