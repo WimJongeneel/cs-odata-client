@@ -41,7 +41,7 @@ namespace Hoppinger.OdataClient.QueryBuilder
 
         public SelectedCollectionQuery<SelectFields, FilterFields, OrderbyFields, Relations, Result> Filter(Expression<Func<FilterFields, bool>> predicate)
         {
-            var newFilter = FilterExpression.Compile(predicate.Body);
+            var newFilter = FilterExpression.Compile(predicate);
             return new SelectedCollectionQuery<SelectFields, FilterFields, OrderbyFields, Relations, Result>(
                 queryDescriptior.Filter(newFilter), selector, expands, httpClientFactory
             );

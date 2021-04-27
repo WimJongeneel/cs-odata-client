@@ -9,11 +9,13 @@ namespace Hoppinger.OdataClient.Compilation
 {
   public static class FilterExpression
   {
-    public static string Compile(Expression expr)
+    public static string Compile(LambdaExpression expr) => GetExpression(expr.Body, true);
+
+    private static string GetExpression(Expression expr, bool root = false)
     {
       if (expr is InvocationExpression iv) return GetInvocationExpression(iv);
 
-      if (expr is BinaryExpression be) return GetBinaryExpression(be);
+      if (expr is BinaryExpression be) return GetBinaryExpression(be, root);
 
       if (expr is ConstantExpression ce) return GetConstantExpression(ce);
 
@@ -28,11 +30,11 @@ namespace Hoppinger.OdataClient.Compilation
 
     private static string GetUnaryExpression(UnaryExpression n)
     {
-      if(CsAndOdataOperators.ContainsKey(n.NodeType)) return $"{CsAndOdataOperators[n.NodeType]}{Compile(n.Operand)}";
+      if(CsAndOdataOperators.ContainsKey(n.NodeType)) return $"{CsAndOdataOperators[n.NodeType]}{GetExpression(n.Operand)}";
       // C# insert converts around math operators which aren't needed in OData
-      if(n.NodeType == ExpressionType.Convert && n.Type == typeof(double)) return Compile(n.Operand);
-      if(n.NodeType == ExpressionType.Convert && n.Type == typeof(decimal)) return Compile(n.Operand);
-      if(n.NodeType == ExpressionType.Convert && n.Type == typeof(object)) return Compile(n.Operand);
+      if(n.NodeType == ExpressionType.Convert && n.Type == typeof(double)) return GetExpression(n.Operand);
+      if(n.NodeType == ExpressionType.Convert && n.Type == typeof(decimal)) return GetExpression(n.Operand);
+      if(n.NodeType == ExpressionType.Convert && n.Type == typeof(object)) return GetExpression(n.Operand);
       throw new ArgumentException($"UnaryExpression type {n.NodeType} can not be translated to an OData filter expression.");
     }
 
@@ -55,19 +57,20 @@ namespace Hoppinger.OdataClient.Compilation
       return FormatValue(ce.Value);
     }
 
-    private static string GetBinaryExpression(BinaryExpression be)
+    private static string GetBinaryExpression(BinaryExpression be, bool root)
     {
         // compile the addition of strings to the concat function 
         if((be.NodeType == ExpressionType.AddChecked || be.NodeType == ExpressionType.Add) && be.Type == typeof(string))
         {
-          return $"concat({Compile(be.Left)}, {Compile(be.Right)})";
+          return $"concat({GetExpression(be.Left)}, {GetExpression(be.Right)})";
         }
    
         if (CsAndOdataOperators.ContainsKey(be.NodeType))
         {
-          var l = Compile(be.Left);
-          var r = Compile(be.Right);
-          return $"{l} {CsAndOdataOperators[be.NodeType]} {r}";
+          var l = GetExpression(be.Left);
+          var r = GetExpression(be.Right);
+          if(root) return $"{l} {CsAndOdataOperators[be.NodeType]} {r}";
+          return $"({l} {CsAndOdataOperators[be.NodeType]} {r})";
         }
 
         throw new ArgumentException($"Cannot use operator {be.NodeType} in $filter"); 
@@ -92,7 +95,7 @@ namespace Hoppinger.OdataClient.Compilation
       {
         // for magic get accessors that are function in odata
         var key = $"{ma.Expression.Type.Name}.{ma.Member.Name}";
-        if(CsToODataFunctions.ContainsKey(key)) return $"{CsToODataFunctions[key]}({Compile(ma.Expression)})";
+        if(CsToODataFunctions.ContainsKey(key)) return $"{CsToODataFunctions[key]}({GetExpression(ma.Expression)})";
 
         // DateTime has many magic get accessors that don't have a matching function in odata
         if(ma.Expression is MemberExpression m && m.Type == typeof(DateTime))
@@ -113,10 +116,10 @@ namespace Hoppinger.OdataClient.Compilation
     {
       if(IsParamExpression(mc.Object) || mc.Arguments.Any(IsParamExpression)) {
         // substringof is special as it accepts its arguments in reversed order
-        if(mc.Method.Name == "Contains") return $"substringof({Compile(mc.Arguments.Single())}, {Compile(mc.Object)})";
+        if(mc.Method.Name == "Contains") return $"substringof({GetExpression(mc.Arguments.Single())}, {GetExpression(mc.Object)})";
 
         // the arguments of the odata function, including the instance object (if not a static method call)
-        var args = String.Join(", ", (mc.Object is null ? mc.Arguments : mc.Arguments.Prepend(mc.Object)).Select(Compile));
+        var args = String.Join(", ", (mc.Object is null ? mc.Arguments : mc.Arguments.Prepend(mc.Object)).Select(x => GetExpression(x)));
         // when static, the name of the class. when not static, the name of the type of the instance
         var className = mc.Object is null ? mc.Method.DeclaringType.Name : mc.Object.Type.Name;
         var key = $"{className}.{mc.Method.Name}";
