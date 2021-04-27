@@ -29,6 +29,10 @@ namespace Hoppinger.OdataClient.Compilation
     private static string GetUnaryExpression(UnaryExpression n)
     {
       if(CsAndOdataOperators.ContainsKey(n.NodeType)) return $"{CsAndOdataOperators[n.NodeType]}{Compile(n.Operand)}";
+      // C# insert converts around math operators which aren't needed in OData
+      if(n.NodeType == ExpressionType.Convert && n.Type == typeof(double)) return Compile(n.Operand);
+      if(n.NodeType == ExpressionType.Convert && n.Type == typeof(decimal)) return Compile(n.Operand);
+      if(n.NodeType == ExpressionType.Convert && n.Type == typeof(object)) return Compile(n.Operand);
       throw new ArgumentException($"UnaryExpression type {n.NodeType} can not be translated to an OData filter expression.");
     }
 
@@ -135,7 +139,12 @@ namespace Hoppinger.OdataClient.Compilation
       return value is null ? "null" : value.ToString();
     }
 
-    private static bool IsParamExpression(Expression e) => e is ParameterExpression || (e is MemberExpression m && IsParamExpression(m.Expression));
+    private static bool IsParamExpression(Expression e) => 
+      e is ParameterExpression 
+      || (e is MemberExpression m && IsParamExpression(m.Expression)) 
+      || (e is MethodCallExpression n && IsParamExpression(n.Object))
+      || (e is BinaryExpression b && (IsParamExpression(b.Left) || IsParamExpression(b.Left)))
+      || (e is UnaryExpression u && IsParamExpression(u.Operand));
 
     private static IEnumerable<string> GetMemberPath(MemberExpression ma, IEnumerable<string> path) => ma.Expression is MemberExpression ma1 ? GetMemberPath(ma1, path.Prepend(ma.Member.Name)) : path.Prepend(ma.Member.Name);
 
