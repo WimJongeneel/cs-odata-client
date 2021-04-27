@@ -52,6 +52,12 @@ namespace Hoppinger.OdataClient.QueryBuilder
         public QueryDescriptior Orderby(string orderby) => 
             new QueryDescriptior(baseurl: baseurl, select: select, filter: filter, orderby: orderby, top: top, skip: skip, model: model);
 
+        public QueryDescriptior OrderbyThen(string o)
+        {
+            var _orderby = String.IsNullOrWhiteSpace(this.orderby) ? o : $"{this.orderby}, {o}";
+            return new QueryDescriptior(baseurl: baseurl, select: select, filter: filter, orderby: _orderby, top: top, skip: skip, model: model);
+        } 
+
         public QueryDescriptior Top(int top) => 
             new QueryDescriptior(baseurl: baseurl, select: select, filter: filter, orderby: orderby, top: top, skip: skip, model: model);
 

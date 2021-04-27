@@ -55,6 +55,30 @@ namespace Hoppinger.OdataClient.QueryBuilder
             );
         }
 
+        public SelectedCollectionQuery<SelectFields, FilterFields, OrderbyFields, Relations, Result> OrderbyThen(Expression<Func<OrderbyFields, object>> keySelector)
+        {
+            var orderby = OrderbyExpression.Compile<OrderbyFields>(keySelector);
+            return new SelectedCollectionQuery<SelectFields, FilterFields, OrderbyFields, Relations, Result>(
+                queryDescriptior.OrderbyThen(orderby), selector, expands, httpClientFactory
+            );
+        }
+
+        public SelectedCollectionQuery<SelectFields, FilterFields, OrderbyFields, Relations, Result> OrderbyDescending(Expression<Func<OrderbyFields, object>> keySelector)
+        {
+            var orderby = OrderbyExpression.Compile<OrderbyFields>(keySelector);
+            return new SelectedCollectionQuery<SelectFields, FilterFields, OrderbyFields, Relations, Result>(
+                queryDescriptior.Orderby($"{orderby} desc"), selector, expands, httpClientFactory
+            );
+        }
+
+        public SelectedCollectionQuery<SelectFields, FilterFields, OrderbyFields, Relations, Result> OrderbyDescendingThen(Expression<Func<OrderbyFields, object>> keySelector)
+        {
+            var orderby = OrderbyExpression.Compile<OrderbyFields>(keySelector);
+            return new SelectedCollectionQuery<SelectFields, FilterFields, OrderbyFields, Relations, Result>(
+                queryDescriptior.OrderbyThen($"{orderby} desc"), selector, expands, httpClientFactory
+            );
+        }
+
         public SelectedCollectionQuery<SelectFields, FilterFields, OrderbyFields, Relations, Result> Top(int top) =>
             new SelectedCollectionQuery<SelectFields, FilterFields, OrderbyFields, Relations, Result>(
                 queryDescriptior.Top(top), selector, expands, httpClientFactory
