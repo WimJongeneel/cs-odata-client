@@ -5,7 +5,6 @@ namespace Hoppinger.OdataClient.Compilation
         public static string Escape(string s)
         {
             var escaped = "";
-            var prev = ' ';
             var current = ' ';
 
             foreach(var cc in s)
@@ -18,7 +17,6 @@ namespace Hoppinger.OdataClient.Compilation
                 {
                     escaped += cc;
                 }
-                prev = current;
                 current = cc;
             }
 
