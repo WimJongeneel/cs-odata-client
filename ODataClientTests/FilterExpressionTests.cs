@@ -109,7 +109,7 @@ namespace ODataClientTests
             expr = FilterExpression.Compile(predicate);
             Assert.Equal("(((Id add 2) div (2 mul Id)) add 7) eq 0", expr);
 
-             predicate = x => (x.Id + 2) / (2 * x.Id) + 5 + 2 == 0;
+            predicate = x => (x.Id + 2) / (2 * x.Id) + 5 + 2 == 0;
             expr = FilterExpression.Compile(predicate);
             Assert.Equal("((((Id add 2) div (2 mul Id)) add 5) add 2) eq 0", expr);
         }

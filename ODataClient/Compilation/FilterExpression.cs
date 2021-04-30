@@ -90,7 +90,6 @@ namespace Hoppinger.OdataClient.Compilation
         return FormatValue(value);
       }
 
-
       if(IsParamExpression(ma.Expression))
       {
         // for magic get accessors that are function in odata
@@ -108,8 +107,6 @@ namespace Hoppinger.OdataClient.Compilation
 
       var value1 = Expression.Lambda(ma).Compile().DynamicInvoke();
       return FormatValue(value1);
-
-      throw new ArgumentException($"Cannot acces member {ma.Member.Name} in $filter");
     }
 
     private static string GetMethodCallExpression(MethodCallExpression mc)
@@ -118,9 +115,9 @@ namespace Hoppinger.OdataClient.Compilation
         // substringof is special as it accepts its arguments in reversed order
         if(mc.Method.Name == "Contains") return $"substringof({GetExpression(mc.Arguments.Single())}, {GetExpression(mc.Object)})";
 
-        // the arguments of the odata function, including the instance object (if not a static method call)
+        // the arguments of the odata function, including the instance object as the first argument (if not a static method call)
         var args = String.Join(", ", (mc.Object is null ? mc.Arguments : mc.Arguments.Prepend(mc.Object)).Select(x => GetExpression(x)));
-        // when static, the name of the class. when not static, the name of the type of the instance
+        // when static, the name of the class. when not static, the name of the instance type of the value the method is called on
         var className = mc.Object is null ? mc.Method.DeclaringType.Name : mc.Object.Type.Name;
         var key = $"{className}.{mc.Method.Name}";
         if(CsToODataFunctions.ContainsKey(key)) return $"{CsToODataFunctions[key]}({args})";        
@@ -153,6 +150,7 @@ namespace Hoppinger.OdataClient.Compilation
 
     private static Dictionary<string, string> CsToODataFunctions = new Dictionary<string, string>()
     {
+      // String methods
       {"String.ToLower", "tolower"},
       {"String.ToLowerInvariant", "tolower"},
       {"String.ToUpper", "toupper"},
@@ -164,9 +162,11 @@ namespace Hoppinger.OdataClient.Compilation
       {"String.EndsWith", "endswith"},
       {"String.IndexOf", "indexof"},
       {"String.Replace", "replace"},
+      // Math methods (statics)
       {"Math.Round", "round"},
       {"Math.Floor", "floor"},
       {"Math.Ceiling", "ceiling"},
+      // DateTime methods
       {"DateTime.Day", "day"},
       {"DateTime.Hour", "hour"},
       {"DateTime.Minute", "minute"},
@@ -175,7 +175,7 @@ namespace Hoppinger.OdataClient.Compilation
       {"DateTime.Year", "year"},
     };
 
-    private static Dictionary<ExpressionType, string> CsAndOdataOperators = new Dictionary<ExpressionType, string>()
+    private static Dictionary<ExpressionType, string> CsAndOdataOperators = new Dictionary<ExpressionType, string>
     {
       // simple algabra
       { ExpressionType.Add, "add" },
