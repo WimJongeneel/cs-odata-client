@@ -130,7 +130,8 @@ namespace Hoppinger.OdataClient.Compilation
 
     private static string FormatValue(object value)
     {
-      if(value is string || value is char) return $"'{value}'";
+      if(value is char ch) return $"'{(ch == '\'' ? "''" : ch.ToString())}'";
+      if(value is string s) return $"'{Utils.Escape(s)}'";
       if(value is bool b) return b ? "true" : "false";
       if(value is DateTime d) return $"'{d.ToString("o")}'";
       if(value is decimal c) return c.ToString(new CultureInfo("en-US", false));

@@ -113,5 +113,25 @@ namespace ODataClientTests
             expr = FilterExpression.Compile(predicate);
             Assert.Equal("((((Id add 2) div (2 mul Id)) add 5) add 2) eq 0", expr);
         }
+
+        [Fact]
+        public void EscapeTests()
+        {
+            predicate = x => x.Foo == "test' or 1 eq 1";
+            expr = FilterExpression.Compile(predicate);
+            Assert.Equal("Foo eq 'test'' or 1 eq 1'", expr);
+
+            predicate = x => x.Foo == "te''st' or 1 eq 1";
+            expr = FilterExpression.Compile(predicate);
+            Assert.Equal("Foo eq 'te''''st'' or 1 eq 1'", expr);
+           
+            predicate = x => x.Foo == "'";
+            expr = FilterExpression.Compile(predicate);
+            Assert.Equal("Foo eq ''''", expr);
+
+            predicate = x => x.Foo == "'test'";
+            expr = FilterExpression.Compile(predicate);
+            Assert.Equal("Foo eq '''test'''", expr);
+        }
     }
 }
